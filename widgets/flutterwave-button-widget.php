@@ -191,11 +191,27 @@ class Flutterwave_Button_Widget extends Widget_Base
             $button_color = $settings['button_color'];
             $title_color = $settings['title_color'];
 
+            $this->add_render_attribute(
+                'button_text',
+                [
+                    'id' => 'f4b-elementor-paynow-button',
+                    'class' => ['flutterwave-elemetor-button', 'elementor-f4b-title'],
+                    'style' => '
+                    color: ' . $title_color . ';
+                    background-color: ' . $button_color . ';
+                    font-size: 17px;
+                    line-height: 1.25;
+                    padding: 1.1em 1.44em;
+                    text-transform:uppercase;
+                    border:none;
+                    borderRadius:0.3em;'
+                ]
+            );
+
             ?>
 
-<div class="f4b-elementor-paynow-button-container">
-    <button id="f4b-elementor-paynow-button" class="f4b-elementor-paynow-button"
-        style="background-color: <?php echo $button_color; ?>; color: <?php echo $title_color; ?>;">
+<div class="flutterwave-elementor-paynow-button-container">
+    <button <?php echo $this->get_render_attribute_string( 'button_text' ); ?>>
         <?php echo $button_text; ?>
     </button>
     <?php
