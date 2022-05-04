@@ -5,8 +5,7 @@ if( !defined('ABSPATH') ) return exit;
 use Elementor\Widget_Base;
 
 class Flutterwave_Button_Widget extends Widget_Base
-{
-        
+{       
         public function get_name()
         {
             return 'flutterwave-button-widget';
@@ -24,7 +23,25 @@ class Flutterwave_Button_Widget extends Widget_Base
         
         public function get_categories()
         {
-            return [ 'general' ];
+            return [ 'flutterwave-blocks' ];
+        }
+
+        public function get_script_depends() {
+            //get the settings of flutterwave for Business Plugin
+            $setting = get_option( 'f4bflutterwave_options', ['public_key' => 'FLWSECK_TEST-SANDBOXDEMOKEY-X', 'success_redirect_url' => '', 'failed_redirect_url' => ''] );
+            wp_enqueue_script( 'flutterwave-elementor-js', FLWELEMENTOR_PLUGIN_URL . 'assets/js/flutterwave-elementor.js' , ['jquery'], true );
+            wp_localize_script( 'flutterwave-elementor-js', 'flutterwave_elementor_data', [
+                'apiUrl' => home_url( '/wp-json' ),
+                'public_key' => $setting['public_key'],
+                'success_redirect_url' => $setting['success_redirect_url'],
+                'failed_redirect_url' => $setting['failed_redirect_url'],
+            ]);
+            return [ 'flutterwave-elementor-js' ];
+        }
+    
+        public function get_style_depends() {
+            wp_enqueue_style( 'flutterwave-elementor-css', FLWELEMENTOR_PLUGIN_URL . 'assets/css/flutterwave-elementor.css', [], rand(), 'all' );
+            return [ 'flutterwave-elementor-css' ];
         }
         
         protected function _register_controls()
@@ -52,13 +69,13 @@ class Flutterwave_Button_Widget extends Widget_Base
                 [
                     'label' => __( 'Size', 'flutterwave-for-elementor' ),
                     'type' => \Elementor\Controls_Manager::SELECT,
-                    'default' => 'md',
+                    'default' => '16px',
                     'options' => [
-                        'xs' => __( 'Extra Small', 'flutterwave-for-elementor' ),
-                        'sm' => __( 'Small', 'flutterwave-for-elementor' ),
-                        'md' => __( 'Medium', 'flutterwave-for-elementor' ),
-                        'lg' => __( 'Large', 'flutterwave-for-elementor' ),
-                        'xl' => __( 'Extra Large', 'flutterwave-for-elementor' ),
+                        '10px' => __( 'Extra Small', 'flutterwave-for-elementor' ),
+                        '12px' => __( 'Small', 'flutterwave-for-elementor' ),
+                        '16px' => __( 'Medium', 'flutterwave-for-elementor' ),
+                        '20px' => __( 'Large', 'flutterwave-for-elementor' ),
+                        '24px' => __( 'Extra Large', 'flutterwave-for-elementor' ),
                     ],
                 ]
             );
@@ -78,15 +95,15 @@ class Flutterwave_Button_Widget extends Widget_Base
             $this->add_control(
                 'currency',
                 [
-                    'label' => esc_html__( 'Currency', 'flutterwave-for-business' ),
+                    'label' => esc_html__( 'Currency', 'flutterwave-for-elementor' ),
                     'type' => \Elementor\Controls_Manager::SELECT,
                     'default' => 'NGN',
                     'options' => [
-                        'GHS'  => esc_html__( 'GHS', 'flutterwave-for-business' ),
-                        'KES' => esc_html__( 'KES', 'flutterwave-for-business' ),
-                        'USD' => esc_html__( 'USD', 'flutterwave-for-business' ),
-                        'NGN' => esc_html__( 'NGN', 'flutterwave-for-business' ),
-                        'NGN' => esc_html__( 'Default', 'flutterwave-for-business' ),
+                        'GHS'  => esc_html__( 'GHS', 'flutterwave-for-elementor' ),
+                        'KES' => esc_html__( 'KES', 'flutterwave-for-elementor' ),
+                        'USD' => esc_html__( 'USD', 'flutterwave-for-elementor' ),
+                        'NGN' => esc_html__( 'NGN', 'flutterwave-for-elementor' ),
+                        'NGN' => esc_html__( 'Default', 'flutterwave-for-elementor' ),
                     ],
                 ]
             );
@@ -94,15 +111,15 @@ class Flutterwave_Button_Widget extends Widget_Base
             $this->add_control(
                 'payment_type',
                 [
-                    'label' => esc_html__( 'Payment Type', 'flutterwave-for-business' ),
+                    'label' => esc_html__( 'Payment Type', 'flutterwave-for-elementor' ),
                     'type' => \Elementor\Controls_Manager::SELECT,
                     'default' => 'default',
                     'options' => [
-                        'card'  => esc_html__( 'Card', 'flutterwave-for-business' ),
-                        'momo'  => esc_html__( 'Mobile Money', 'flutterwave-for-business' ),
-                        'ussd'  => esc_html__( 'USSD', 'flutterwave-for-business' ),
-                        'account' => esc_html__( 'Account', 'flutterwave-for-business' ),
-                        'default' => esc_html__( 'All', 'flutterwave-for-business' ),
+                        'card'  => esc_html__( 'Card', 'flutterwave-for-elementor' ),
+                        'momo'  => esc_html__( 'Mobile Money', 'flutterwave-for-elementor' ),
+                        'ussd'  => esc_html__( 'USSD', 'flutterwave-for-elementor' ),
+                        'account' => esc_html__( 'Account', 'flutterwave-for-elementor' ),
+                        'default' => esc_html__( 'All', 'flutterwave-for-elementor' ),
                     ],
                 ]
             );
@@ -110,14 +127,14 @@ class Flutterwave_Button_Widget extends Widget_Base
             $this->add_control(
                 'payment_plan',
                 [
-                    'label' => esc_html__( 'Payment Plan', 'flutterwave-for-business' ),
+                    'label' => esc_html__( 'Payment Plan', 'flutterwave-for-elementor' ),
                     'type' => \Elementor\Controls_Manager::SELECT,
                     'default' => 'default',
                     'options' => [
-                        'monthly'  => esc_html__( 'Monthly', 'flutterwave-for-business' ),
-                        'quarterly' => esc_html__( 'Quarterly', 'flutterwave-for-business' ),
-                        'yearly' => esc_html__( 'Yearly', 'flutterwave-for-business' ),
-                        'default' => esc_html__( 'None', 'flutterwave-for-business' ),
+                        'monthly'  => esc_html__( 'Monthly', 'flutterwave-for-elementor' ),
+                        'quarterly' => esc_html__( 'Quarterly', 'flutterwave-for-elementor' ),
+                        'yearly' => esc_html__( 'Yearly', 'flutterwave-for-elementor' ),
+                        'default' => esc_html__( 'None', 'flutterwave-for-elementor' ),
                     ],
                 ]
             );
@@ -125,7 +142,7 @@ class Flutterwave_Button_Widget extends Widget_Base
             $this->add_control(
                 'payment_plan_amount',
                 [
-                    'label' => esc_html__( 'Payment Plan Amount', 'flutterwave-for-business' ),
+                    'label' => esc_html__( 'Payment Plan Amount', 'flutterwave-for-elementor' ),
                     'type' => \Elementor\Controls_Manager::NUMBER,
                     'min' => 5,
                     'max' => 100000,
@@ -147,7 +164,7 @@ class Flutterwave_Button_Widget extends Widget_Base
             $this->add_control(
                 'button_color',
                 [
-                    'label' => esc_html__( 'Button Color', 'flutterwave-for-business' ),
+                    'label' => esc_html__( 'Button Color', 'flutterwave-for-elementor' ),
                     'type' => \Elementor\Controls_Manager::COLOR,
                     'selectors' => [
                         '{{WRAPPER}} #f4b-elementor-paynow-button' => 'background-color: {{VALUE}}',
@@ -159,7 +176,7 @@ class Flutterwave_Button_Widget extends Widget_Base
             $this->add_control(
                 'title_color',
                 [
-                    'label' => esc_html__( 'Text Color', 'flutterwave-for-business' ),
+                    'label' => esc_html__( 'Text Color', 'flutterwave-for-elementor' ),
                     'type' => \Elementor\Controls_Manager::COLOR,
                     'selectors' => [
                         '{{WRAPPER}} #f4b-elementor-paynow-button' => 'color: {{VALUE}};',
@@ -182,6 +199,7 @@ class Flutterwave_Button_Widget extends Widget_Base
 	    protected function render() {
             $settings = $this->get_settings_for_display();
             $amount = $settings['amount'];
+            $tx_ref = "WP_ELEMENTOR_" + uniqid() + "100";
             $currency = $settings['currency'];
             $payment_type = $settings['payment_type'];
             $payment_plan = $settings['payment_plan'];
@@ -197,9 +215,7 @@ class Flutterwave_Button_Widget extends Widget_Base
                     'id' => 'f4b-elementor-paynow-button',
                     'class' => ['flutterwave-elemetor-button', 'elementor-f4b-title'],
                     'style' => '
-                    color: ' . $title_color . ';
-                    background-color: ' . $button_color . ';
-                    font-size: 17px;
+                    font-size: ' . $button_size . ';
                     line-height: 1.25;
                     padding: 1.1em 1.44em;
                     text-transform:uppercase;
@@ -209,11 +225,35 @@ class Flutterwave_Button_Widget extends Widget_Base
             );
 
             ?>
-
+<?php $current_user = wp_get_current_user(); ?>
 <div class="flutterwave-elementor-paynow-button-container">
-    <button <?php echo $this->get_render_attribute_string( 'button_text' ); ?>>
-        <?php echo $button_text; ?>
-    </button>
-    <?php
+    <form id="flutterwave-elementor-button-form" method="POST" action="https://checkout.flutterwave.com/v3/hosted/pay">
+        <input type="hidden" name="public_key" value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
+        <input type="hidden" id="flw-elementor-cust-email" name="customer[email]"
+            value="<?php echo $current_user->user_email; ?>" />
+        <input type="hidden" id="flw-elementor-cust-name" name="customer[name]"
+            value="<?php echo $current_user->user_firstname. ' '.$current_user->user_lastname; ?>" />
+        <input type="hidden" name="tx_ref" value="<?php echo $tx_ref; ?>" />
+        <input type="hidden" name="amount" value="<?php echo $amount; ?>" />
+        <input type="hidden" name="currency" value="<?php echo $currency; ?>" />
+        <input type="hidden" id="flw-elementor-redirecturl" name="redirect_url"
+            value="https://demoredirect.localhost.me/" />
+        <button <?php echo $this->get_render_attribute_string( 'button_text' ); ?>>
+            <?php echo $button_text; ?>
+        </button>
+    </form>
+</div>
+<?php
         }
+	
+		protected function content_template()
+		{
+		?>
+<div class="flutterwave-elementor-paynow-button-container">
+    <button id="f4b-elementor-paynow-button">
+        {{{ settings.button_text }}}
+    </button>
+</div>
+<?php
+		}
 }

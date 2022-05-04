@@ -14,7 +14,20 @@
 
 if( !defined('ABSPATH') ) return exit;
 
-add_action( 'elementor/elements/categories_registered', 'add_flutterwave_elementor_widget_categories' );
+define( 'FLWELEMENTOR_PLUGIN_URL', trailingslashit( plugins_url( '/', __FILE__ ) ) );
+define( 'FLWELEMENTOR_PLUGIN_PATH', trailingslashit( plugin_dir_path( __FILE__ ) ) );
+/**
+ * Missing Flutterwave for Business notice
+ */
+function flutterwave_elementor_admin_notice_missing_main_plugin()	{
+	$message = sprintf(
+		esc_html__( '"%1$s" requires "%2$s" to be installed and activated.', 'flutterwave-for-elementor' ),
+		'<strong>' . esc_html__( 'Flutterwave for Elementor', 'flutterwave-for-elementor' ) . '</strong>',
+		'<strong>' . esc_html__( 'Flutterwave for Business', 'flutterwave-for-elementor' ) . '</strong>'
+	);
+
+	printf( '<div class="notice notice-warning is-dismissible"><p>%1$s</p></div>', $message );
+}
 
 /**
  * Register Currency Widget.
@@ -34,4 +47,20 @@ function register_button_widget( $widgets_manager ) {
 	$widgets_manager->register( new \Elementor_Currency_Widget() );
 
 }
-add_action( 'elementor/widgets/register', 'register_button_widget' );
+
+function flutterwave_elementor_init()
+{
+	add_action( 'elementor/widgets/register', 'register_button_widget' );
+}
+
+/**
+ * Get the list of active plugin...
+ * ...then check if Flutterwave for Business is active, and register my widgets
+ */
+$active_plugins = apply_filters( 'active_plugins', get_option( 'active_plugins'));
+
+if (in_array( 'flutterwave-for-business/flutterwave-for-business.php', $active_plugins ) ) {
+	add_action( 'init', 'flutterwave_elementor_init' );
+} else {
+	add_action( 'admin_notices', 'flutterwave_elementor_admin_notice_missing_main_plugin');								
+}
