@@ -22,8 +22,8 @@ define( 'FLWELEMENTOR_PLUGIN_PATH', trailingslashit( plugin_dir_path( __FILE__ )
 function flutterwave_elementor_admin_notice_missing_main_plugin()	{
 	$message = sprintf(
 		esc_html__( '"%1$s" requires "%2$s" to be installed and activated.', 'flutterwave-for-elementor' ),
-		'<strong><a href="https://github.com/Flutterwave/Flutterwave-WordPress/archive/refs/heads/master.zip">' . esc_html__( 'Flutterwave for Elementor', 'flutterwave-for-elementor' ) . '</a></strong>',
-		'<strong>' . esc_html__( 'Flutterwave for Business', 'flutterwave-for-elementor' ) . '</strong>'
+		'<strong>' . esc_html__( 'Flutterwave for Elementor', 'flutterwave-for-elementor' ) . '</strong>',
+		'<strong><a href="https://github.com/Flutterwave/Flutterwave-WordPress/archive/refs/heads/master.zip">' . esc_html__( 'Flutterwave for Business', 'flutterwave-for-elementor' ) . '</a></strong>'
 	);
 
 	printf( '<div class="notice notice-warning is-dismissible"><p>%1$s</p></div>', $message );
