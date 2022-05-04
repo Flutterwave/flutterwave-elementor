@@ -44,7 +44,8 @@ function register_button_widget( $widgets_manager ) {
 	require_once( __DIR__ . '/widgets/flutterwave-link-widget.php' );
 	require_once( __DIR__ . '/widgets/flutterwave-form-widget.php' );
 
-	$widgets_manager->register( new \Elementor_Currency_Widget() );
+	$widgets_manager->register( new \Flutterwave_Button_Widget() );
+	$widgets_manager->register( new \Flutterwave_Form_Widget() );
 
 }
 
