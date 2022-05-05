@@ -1,20 +1,51 @@
 <?php
+/**
+ * Flutterwave Form class.
+ *
+ * @category   Class
+ * @package    ElementorFlutterwave
+ * @author     Flutterwave Developers <developers@flutterwavego.com>
+ * @copyright  2022 Flutterwave Developers
+ * @license    https://opensource.org/licenses/GPL-3.0 GPL-3.0-only
+ * @link       link(https://developers.flutterwave.com)
+ * @since      1.1.0
+ * php version 7.4.0
+ */
 
-if( !defined('ABSPATH') ) return exit;
-
+namespace ElementorFlutterwave\Widgets;
 use Elementor\Widget_Base;
+if( !defined('ABSPATH') ) return exit;
 
 class Flutterwave_Form_Widget extends Widget_Base
 {
     private $f4b_options;
     public $plans;
     public $currencies_array;
-    public function __construct()
+    public function __construct($data = array(), $args = null)
     {
+        parent::__construct($data, $args);
         $this->f4b_options = get_option( 'f4bflutterwave_options' );
         $this->plans = [];
         $this->get_plans();
-        $this->currencies_array = [ "none" => "Select Currency", "NGN" => "NGN", "USD" => "USD", "GBP" => "GBP", "EUR" => "EUR", "AUD" => "AUD", "CAD" => "CAD", "CNY" => "CNY", "JPY" => "JPY", "KRW" => "KRW", "MXN" => "MXN", "NZD" => "NZD", "RUB" => "RUB", "SGD" => "SGD", "THB" => "THB", "ZAR" => "ZAR" ];
+        $this->currencies_array = [ 
+			"none" => "Select Currency", 
+			"NGN" => "NGN",
+			"USD" => "USD",
+			"GBP" => "GBP", 
+			"EUR" => "EUR", 
+			"AUD" => "AUD", 
+			"CAD" => "CAD",
+			"CNY" => "CNY", 
+			"JPY" => "JPY", 
+			"KRW" => "KRW", 
+			"MXN" => "MXN", 
+			"NZD" => "NZD", 
+			"RUB" => "RUB", 
+			"SGD" => "SGD", 
+			"THB" => "THB", 
+			"ZAR" => "ZAR",
+		];
+		wp_register_style( 'flw-elementor-form', plugins_url( '/assets/css/flutterwave-elementor.css', FLWELEMENTOR_PLUGIN_URL ), array(), '1.0.0' );
     }
 
     public function get_name()
@@ -31,26 +62,34 @@ class Flutterwave_Form_Widget extends Widget_Base
     {
         return 'eicon-form-horizontal';
     }
+	
+	public function get_custom_help_url() {
+		return 'https://developers.flutterwave.com';
+	}
     
     public function get_categories()
     {
         return [ 'flutterwave-blocks' ];
     }
+	
+	public function get_keywords() {
+		return [ 'fintech', 'flutterwave', 'Payment', 'International', 'Funds', 'Subscriptions', 'Payout' ];
+	}
 
-    public function get_script_depends() {
-        //get the settings of flutterwave for Business Plugin
-        $setting = get_option( 'f4bflutterwave_options', ['public_key' => 'FLWSECK_TEST-SANDBOXDEMOKEY-X', 'success_redirect_url' => '', 'failed_redirect_url' => ''] );
-        wp_enqueue_script( 'flutterwave-elementor-js', FLWELEMENTOR_PLUGIN_URL . 'assets/js/flutterwave-elementor.js' , ['jquery'], true );
-        wp_localize_script( 'flutterwave-elementor-js', 'flutterwave_elementor_data', [
-            'apiUrl' => home_url( '/wp-json' ),
-            'public_key' => $setting['public_key'],
-            'success_redirect_url' => $setting['success_redirect_url'],
-            'failed_redirect_url' => $setting['failed_redirect_url'],
-        ]);
-        return [ 'flutterwave-elementor-js' ];
-    }
+//     public function get_script_depends() {
+//         //get the settings of flutterwave for Business Plugin
+//         $setting = get_option( 'f4bflutterwave_options', ['public_key' => 'FLWSECK_TEST-SANDBOXDEMOKEY-X', 'success_redirect_url' => '', 'failed_redirect_url' => ''] );
+//         wp_enqueue_script( 'flutterwave-elementor-js', FLWELEMENTOR_PLUGIN_URL . 'assets/js/flutterwave-elementor.js' , ['jquery'], true );
+//         wp_localize_script( 'flutterwave-elementor-js', 'flutterwave_elementor_data', [
+//             'apiUrl' => home_url( '/wp-json' ),
+//             'public_key' => $setting['public_key'],
+//             'success_redirect_url' => $setting['success_redirect_url'],
+//             'failed_redirect_url' => $setting['failed_redirect_url'],
+//         ]);
+//         return [ 'flutterwave-elementor-js' ];
+//     }
     
-    protected function _register_controls()
+    protected function register_controls()
     {
         $this->start_controls_section(
             'form_section',
@@ -76,7 +115,7 @@ class Flutterwave_Form_Widget extends Widget_Base
 				'label' => esc_html__( 'Description', 'flutterwave-for-elementor' ),
 				'type' => \Elementor\Controls_Manager::TEXTAREA,
 				'rows' => 10,
-				'default' => esc_html__( 'Default description', 'flutterwave-for-elementor' ),
+				'default' => esc_html__( 'This form is use to sell tickets online', 'flutterwave-for-elementor' ),
 				'placeholder' => esc_html__( 'Type your description here', 'flutterwave-for-elementor' ),
 			]
 		);
@@ -90,13 +129,17 @@ class Flutterwave_Form_Widget extends Widget_Base
                 'max' => 1000000,
                 'step' => 5,
                 'default' => 100,
+				'condition' => [
+					'payment_frequency' => 'one-off'
+				]
+				
             ]
         );
-
-        $this->add_control(
+		
+		$this->add_control(
 			'currency_picker_enabled',
 			[
-				'label' => esc_html__( 'Allow customers to pick amount and currency', 'flutterwave-for-elementor' ),
+				'label' => esc_html__( 'Show Amount field', 'flutterwave-for-elementor' ),
 				'type' => \Elementor\Controls_Manager::SWITCHER,
 				'label_on' => esc_html__( 'Yes', 'flutterwave-for-elementor' ),
 				'label_off' => esc_html__( 'No', 'flutterwave-for-elementor' ),
@@ -104,23 +147,32 @@ class Flutterwave_Form_Widget extends Widget_Base
 				'default' => 'yes',
 			]
 		);
-
-        $this->add_control(
+		
+		//currenct list for one-off
+		$this->add_control(
             'currency',
             [
                 'label' => esc_html__( 'Currency', 'flutterwave-for-elementor' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'default' => 'NGN',
-                'options' => [
-                    'GHS'  => esc_html__( 'GHS', 'flutterwave-for-elementor' ),
-                    'KES' => esc_html__( 'KES', 'flutterwave-for-elementor' ),
-                    'USD' => esc_html__( 'USD', 'flutterwave-for-elementor' ),
-                    'NGN' => esc_html__( 'NGN', 'flutterwave-for-elementor' ),
-                    'NGN' => esc_html__( 'Default', 'flutterwave-for-elementor' ),
-                ],
+                'options' => $this->currencies_array,
+				'condition' => [
+					'payment_frequency' => 'one-off',
+					'currency_picker_enabled!' => 'yes'
+				]
             ]
         );
 
+		//currenct list for one-off
+		$this->add_control(
+			'currency_list',
+			[
+				'label' => esc_html__( 'Currency List', 'flutterwave-for-elementor' ),
+				'type' => \Elementor\Controls_Manager::HIDDEN,
+				'default' => $this->currencies_array,
+			]
+		);
+		//methods to be displayed on the modal
         $this->add_control(
             'payment_type',
             [
@@ -137,6 +189,7 @@ class Flutterwave_Form_Widget extends Widget_Base
             ]
         );
 
+		//One-off or Recurring
         $this->add_control(
 			'payment_frequency',
             [
@@ -150,6 +203,7 @@ class Flutterwave_Form_Widget extends Widget_Base
             ]
 		);
 
+		//Select a payment plan
         $this->add_control(
             'payment_plan',
             [
@@ -157,11 +211,11 @@ class Flutterwave_Form_Widget extends Widget_Base
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'default' => 'default',
                 'options' => [
+					'default' => esc_html__( 'None', 'flutterwave-for-elementor' ),
                     'monthly'  => esc_html__( 'Monthly', 'flutterwave-for-elementor' ),
                     'quarterly' => esc_html__( 'Quarterly', 'flutterwave-for-elementor' ),
                     'yearly' => esc_html__( 'Yearly', 'flutterwave-for-elementor' ),
                     'saved' => esc_html__( 'Saved Payment Plan ', 'flutterwave-for-elementor' ),
-                    'default' => esc_html__( 'None', 'flutterwave-for-elementor' ),
                 ],
                 'condition' => [
                     'payment_frequency' => 'recurring',
@@ -175,53 +229,21 @@ class Flutterwave_Form_Widget extends Widget_Base
             [
                 'label' => esc_html__( 'Saved Plan', 'flutterwave-for-elementor' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
-                'default' => $this->plans['control_display'][0],//first plan id
+                'default' => array_keys($this->plans['control_display'])[0],//first plan id
                 'options' => $this->plans['control_display'],
                 'condition' => [
+					'payment_plan' => 'saved',
                     'payment_frequency' => 'recurring',
                 ],
             ]
         );
-
-        $this->add_control(
-            'saved_plan_amount',
-            [
-                'label' => esc_html__( 'Saved Plan Amount', 'flutterwave-for-elementor' ),
-                'type' => \Elementor\Controls_Manager::NUMBER,
-                'min' => 5,
-                'max' => 1000000,
-                'step' => 5,
-                'default' => 0,
-                'condition' => [
-                    'saved_plan!' => 'none',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'payment_plan_amount',
-            [
-                'label' => esc_html__( 'Payment Plan Amount', 'flutterwave-for-elementor' ),
-                'type' => \Elementor\Controls_Manager::NUMBER,
-                'min' => 5,
-                'max' => 100000,
-                'step' => 5,
-                'default' => 0,
-                'condition' => [
-                    'payment_plan!' => 'default',
-                    'payment_plan!' => 'saved',
-                ],
-            ]
-        );
-
-
-
+		
         $this->end_controls_section();
-
-        $this->start_controls_section(
-            'section_button',
+		
+		$this->start_controls_section(
+            'section_form_style',
             [
-                'label' => esc_html__( 'Form', 'flutterwave-for-elementor' ),
+                'label' => esc_html__( 'Form Settings', 'flutterwave-for-elementor' ),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -245,34 +267,22 @@ class Flutterwave_Form_Widget extends Widget_Base
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', 'em', '%' ],
                 'selectors' => [
-                    '{{WRAPPER}} #flutterwave-elementor-form-form' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} #flutterwave-elementor-form-form' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}					{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
 		);
-
-        $this->add_control(
-            'form_border_color',
+		
+		$this->add_control(
+			'form_margin',
             [
-                'label' => esc_html__( 'Border Color', 'flutterwave-for-elementor' ),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '',
-                'selectors' => [
-                    '{{WRAPPER}} #flutterwave-elementor-form-form' => 'border-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'form_width',
-            [
-                'label' => esc_html__( 'Form Width', 'flutterwave-for-elementor' ),
+                'label' => __( 'Margin', 'flutterwave-for-elementor' ),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', 'em', '%' ],
                 'selectors' => [
-                    '{{WRAPPER}} #flutterwave-elementor-form-form' => 'width: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} #flutterwave-elementor-form-form' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} 									{{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
-        );
+		);
 
         $this->add_control(
             'form_radius',
@@ -281,19 +291,7 @@ class Flutterwave_Form_Widget extends Widget_Base
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', 'em', '%' ],
                 'selectors' => [
-                    '{{WRAPPER}} #flutterwave-elementor-form-form' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'form_border_width',
-            [
-                'label' => esc_html__( 'Border Width', 'flutterwave-for-elementor' ),
-                'type' => \Elementor\Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px', 'em', '%' ],
-                'selectors' => [
-                    '{{WRAPPER}} #flutterwave-elementor-form-form' => 'border-width: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} #flutterwave-elementor-form-form' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} 						{{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -317,30 +315,6 @@ class Flutterwave_Form_Widget extends Widget_Base
             ]
         );
 
-        $this->add_control(
-			'font_family',
-			[
-				'label' => esc_html__( 'Font Family', 'flutterwave-for-elementor' ),
-				'type' => \Elementor\Controls_Manager::FONT,
-				'default' => "'Open Sans', sans-serif",
-				'selectors' => [
-					'{{WRAPPER}} #flutterwave-elementor-form-form' => 'font-family: {{VALUE}}',
-				],
-			]
-		);
-
-		$this->add_control(
-			'input_margin',
-			[
-				'label' => esc_html__( 'Input Margin', 'flutterwave-for-elementor' ),
-				'type' => \Elementor\Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', '%', 'em' ],
-				'selectors' => [
-					'{{WRAPPER}} .flw-elementor-input' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				],
-			]
-		);
-
 		$this->add_control(
 			'input_padding',
 			[
@@ -348,8 +322,16 @@ class Flutterwave_Form_Widget extends Widget_Base
 				'type' => \Elementor\Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%', 'em' ],
 				'selectors' => [
-					'{{WRAPPER}} .flw-elementor-input' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .flw-elementor-input' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} 						{{LEFT}}{{UNIT}};',
 				],
+				'default' => [
+						'top' => 0,
+						'right' => 0,
+						'bottom' => 0,
+						'left' => 27,
+						'unit' => 'px',
+						'isLinked' => false,
+				]
 			]
 		);
 
@@ -409,11 +391,12 @@ class Flutterwave_Form_Widget extends Widget_Base
         );
 
         $this->end_controls_section();
+		
 
         $this->start_controls_section(
-            'section_button',
+            'section_button_style',
             [
-                'label' => esc_html__( 'Button', 'flutterwave-for-elementor' ),
+                'label' => esc_html__( 'Button Style', 'flutterwave-for-elementor' ),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -455,12 +438,20 @@ class Flutterwave_Form_Widget extends Widget_Base
      */
     protected function render() {
         $settings = $this->get_settings_for_display();
+		$form_title = $settings['title_text'];
         $amount = $settings['amount'];
         $tx_ref = "WP_ELEMENTOR_" + uniqid() + "100";
         $currency = $settings['currency'];
         $payment_type = $settings['payment_type'];
         $payment_plan = $settings['payment_plan'];
-        $payment_plan_amount = $settings['payment_plan_amount'];
+		//create a new plan and return the id
+// 		$payment_plan_amount = $this->plans['control_display_amount'][$settings['pa']];
+		if(isset($settings['saved_plan']) && empty($settings['saved_plan'])){
+			$payment_plan_amount = $this->plans['control_display_amount'][$settings['saved_plan']];
+			echo "<h2>".$payment_plan_amount."</h2>";
+			$currency = $this->plans['control_display_currency'][$settings['saved_plan']];
+		}
+        
         $button_text = $settings['button_text'];
         $button_size = $settings['button_size'];
         $button_color = $settings['button_color'];
@@ -480,30 +471,46 @@ class Flutterwave_Form_Widget extends Widget_Base
                 borderRadius:0.3em;'
             ]
         );
-
-        $currencies = $this->currencies_array;
-
+		
+		$this->add_render_attribute(
+			'input_field',
+			[
+				'style' => '
+					margin-bottom: 1em;
+					width: 100%;
+					height: 55px;
+				'
+			]
+        );
         ?>
 <?php $current_user = wp_get_current_user(); ?>
-<div class="flutterwave-elementor-paynow-button-container">
+<div class="flutterwave-elementor-paynow-form-container">
     <form id="flutterwave-elementor-form-form" method="POST" action="https://checkout.flutterwave.com/v3/hosted/pay">
-        <input name="public_key" value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
-        <input id="flw-elementor-cust-email" name="customer[email]" value="<?php echo $current_user->user_email; ?>" />
+        <h3 style="text-align:center">
+            <?php echo $form_title; ?>
+        </h3>
+        <input type="hidden" name="public_key" value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
+        <input id="flw-elementor-cust-email" class="" name="customer[email]"
+            value="<?php echo $current_user->user_email; ?>"
+            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> />
         <input id="flw-elementor-cust-name" name="customer[name]"
-            value="<?php echo $current_user->user_firstname. ' '.$current_user->user_lastname; ?>" />
+            value="<?php echo $current_user->user_firstname. ' '.$current_user->user_lastname; ?>"
+            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> />
         <input type="hidden" name="tx_ref" value="<?php echo $tx_ref; ?>" />
         <?php if($currency_picker_enabled === 'yes'){ ?>
-        <select name="currency">
-            <?php foreach ($currencies as $key => $value) { ?>
+        <select name="currency" <?php echo $this->get_render_attribute_string( 'input_field' ); ?>>
+            <?php foreach ($this->currencies_array as $key => $value) { ?>
             <option value="<?php echo $key; ?>"><?php echo $value; ?></option>
             <?php }?>
         </select>
-        <input name="amount" value="<?php echo $amount; ?>" />
+        <input name="amount" value="<?php echo $amount; ?>"
+            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> />
         <?php }else{?>
         <input type="hidden" name="currency" value="<?php echo $currency; ?>" />
         <input type="hidden" name="amount" value="<?php echo $amount; ?>" />
         <?php }?>
-        <input id="flw-elementor-redirecturl" name="redirect_url" value="https://demoredirect.localhost.me/" />
+        <input type="hidden" id="flw-elementor-redirecturl" name="redirect_url"
+            value="https://demoredirect.localhost.me/" />
         <button <?php echo $this->get_render_attribute_string( 'button_text' ); ?>>
             <?php echo $button_text; ?>
         </button>
@@ -515,30 +522,60 @@ class Flutterwave_Form_Widget extends Widget_Base
     protected function content_template()
     {
     ?>
-<div class="flutterwave-elementor-paynow-button-container">
-    <form id="flutterwave-elementor-form-form">
-        <input name="public_key" value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
-        <input id="flw-elementor-cust-email" name="customer[email]" value="johndoe@gmail.com" placeholder="Email" />
-        <input id="flw-elementor-cust-name" name="customer[name]" value="Olaobaju Abraham" placeholder="Name" />
-        <# if ( 'yes'===settings.currency_picker_enabled ) { #>
-            <select name="currency">
-                <# _.each( settings.currencies, function( value, key ) { #>
-                    <option value="{{ value }}">{{{ key }}}</option>
-                    <# } ); #>
-            </select>
-            <input name="amount" value="{{ settings.amount }}" />
-            <# }else{ #>
-                <input type="hidden" name="currency" value="{{ settings.currency }}" />
-                <input type="hidden" name="amount" value="{{ settings.amount }}" />
-                <# } #>
-                    <input id="flw-elementor-redirecturl" name="redirect_url"
-                        value="https://demoredirect.localhost.me/" />
-                    <button id="f4b-elementor-paynow-button">
-                        {{{ settings.button_text }}}
-                    </button>
-    </form>
-</div>
-<?php
+<# view.addRenderAttribute( 'input_field' , { 'style' : 'margin-bottom: 1em;width: 100%;height: 55px;' } ); #>
+    <div class="flutterwave-elementor-paynow-form-container">
+        <div id="flutterwave-elementor-form-form" style="
+	color: black;
+	padding: 30px;
+	padding-left: auto;
+	padding-right: auto;
+	filter: drop-shadow(0px 1.44402px 10.8301px rgba(0, 0, 0, 0.1));
+	font-family: Inter;
+	position: relative;
+	justify-content: center;
+	width: 50%;
+	margin: 5px auto;
+	display: flex;
+	flex-direction:column;
+	font-weight: 300;
+	background-color: #f2f2f2">
+            <h3 style="text-align:center">
+                {{{ settings.title_text }}}
+            </h3>
+            <div style="text-align:center">
+                {{{ settings.form_description }}}
+            </div>
+            <input id="flw-elementor-cust-email" {{{ view.getRenderAttributeString( 'input_field' ) }}}
+                class="flw-elementor-input" name="customer[email]" placeholder="Email" />
+            <input id="flw-elementor-cust-name" {{{ view.getRenderAttributeString( 'input_field' ) }}}
+                class="flw-elementor-input" name="customer[name]" placeholder="Name" />
+            <# if ( 'yes'===settings.currency_picker_enabled ) { #>
+                <select name="currency" class="flw-elementor-input"
+                    {{{ view.getRenderAttributeString( 'input_field' ) }}} value="{{{ settings.currency }}}">
+                    <option value="None">Select Currency</option>
+                    <# _.each( settings.currency_list, function( value, key ) { #>
+                        <option value="{{ value }}">{{{ key }}}</option>
+                        <# } ); #>
+                </select>
+                <input class="flw-elementor-input" name="amount" {{{ view.getRenderAttributeString( 'input_field' ) }}}
+                    value="{{{ settings.amount }}}" />
+                <# }else{ #>
+                    <input type="hidden" name="currency" {{{ view.getRenderAttributeString( 'input_field' ) }}}
+                        value="{{{ settings.currency }}}" />
+                    <input type="hidden" name="amount" {{{ view.getRenderAttributeString( 'input_field' ) }}}
+                        value="{{{ settings.amount }}}" />
+                    <# } #>
+                        <button id="f4b-elementor-paynow-button" style="font-size:{{{ settings.button_size }}};
+                line-height: 1.25;
+                padding: 1.1em 1.44em;
+                text-transform:uppercase;
+                border:none;
+                borderRadius:0.3em;">
+                            {{{ settings.button_text }}}
+                        </button>
+                        </form>
+        </div>
+        <?php
     }
 
     protected function get_plans():void

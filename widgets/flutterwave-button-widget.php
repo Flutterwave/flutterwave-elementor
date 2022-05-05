@@ -1,11 +1,30 @@
 <?php
+/**
+ * Flutterwave Button class.
+ *
+ * @category   Class
+ * @package    ElementorFlutterwave
+ * @author     Flutterwave Developers <developers@flutterwavego.com>
+ * @copyright  2022 Flutterwave Developers
+ * @license    https://opensource.org/licenses/GPL-3.0 GPL-3.0-only
+ * @link       link(https://developers.flutterwave.com)
+ * @since      1.1.0
+ * php version 7.4.0
+ */
+
+namespace ElementorFlutterwave\Widgets;
+use Elementor\Widget_Base;
 
 if( !defined('ABSPATH') ) return exit;
 
-use Elementor\Widget_Base;
-
 class Flutterwave_Button_Widget extends Widget_Base
 {       
+        public function __construct($data = array(), $args = null)
+        {
+            parent::__construct($data, $args);
+
+            // add_action('elementor/frontend/after_register_scripts', [$this, 'register_scripts']);
+        }
         public function get_name()
         {
             return 'flutterwave-button-widget';
