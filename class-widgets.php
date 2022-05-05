@@ -65,6 +65,7 @@ class Widgets {
 	 */
 	private function include_widgets_files() {
 		require_once 'widgets/flutterwave-button-widget.php';
+        require_once 'widgets/flutterwave-form-widget.php';
 	}
 
 	/**
