@@ -45,7 +45,7 @@ class Flutterwave_Form_Widget extends Widget_Base
 			"THB" => "THB", 
 			"ZAR" => "ZAR",
 		];
-		wp_register_style( 'flw-elementor-form', plugins_url( '/assets/css/flutterwave-elementor.css', FLWELEMENTOR_PLUGIN_URL ), array(), '1.0.0' );
+		wp_register_style( 'flw-elementor-form', plugins_url( '/assets/css/flutterwave-elementor.css', ELEMENTOR_FLUTTERWAVE ), array(), '1.0.0' );
     }
 
     public function get_name()
@@ -147,7 +147,7 @@ class Flutterwave_Form_Widget extends Widget_Base
 				'default' => 'yes',
 			]
 		);
-		
+				
 		//currenct list for one-off
 		$this->add_control(
             'currency',
@@ -172,6 +172,17 @@ class Flutterwave_Form_Widget extends Widget_Base
 				'default' => $this->currencies_array,
 			]
 		);
+			
+		$this->add_control(
+			'plans_list',
+			[
+				'label' => esc_html__( 'Plan List', 'flutterwave-for-elementor' ),
+				'type' => \Elementor\Controls_Manager::HIDDEN,
+				'default' => $this->plans,
+			]
+		);
+			
+			
 		//methods to be displayed on the modal
         $this->add_control(
             'payment_type',
@@ -202,7 +213,7 @@ class Flutterwave_Form_Widget extends Widget_Base
                 ],
             ]
 		);
-
+		
 		//Select a payment plan
         $this->add_control(
             'payment_plan',
@@ -222,6 +233,21 @@ class Flutterwave_Form_Widget extends Widget_Base
                 ],
             ]
         );
+		
+		$this->add_control(
+			'plan_picker_enabled',
+			[
+				'label' => esc_html__( 'Show Payment Plans', 'flutterwave-for-elementor' ),
+				'type' => \Elementor\Controls_Manager::SWITCHER,
+				'label_on' => esc_html__( 'Yes', 'flutterwave-for-elementor' ),
+				'label_off' => esc_html__( 'No', 'flutterwave-for-elementor' ),
+				'return_value' => 'yes',
+				'default' => 'no',
+				'condition' => [
+                    'payment_frequency' => 'recurring',
+                ],
+			]
+		);
 
         //show plans in the select box
         $this->add_control(
@@ -253,7 +279,7 @@ class Flutterwave_Form_Widget extends Widget_Base
             [
                 'label' => esc_html__( 'Form Color', 'flutterwave-for-elementor' ),
                 'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '',
+                'default' => '#f2f2f2',
                 'selectors' => [
                     '{{WRAPPER}} #flutterwave-elementor-form-form' => 'background-color: {{VALUE}};',
                 ],
@@ -440,15 +466,14 @@ class Flutterwave_Form_Widget extends Widget_Base
         $settings = $this->get_settings_for_display();
 		$form_title = $settings['title_text'];
         $amount = $settings['amount'];
-        $tx_ref = "WP_ELEMENTOR_" + uniqid() + "100";
+        $tx_ref = "WP_ELEMENTOR_".uniqid()."100";
         $currency = $settings['currency'];
         $payment_type = $settings['payment_type'];
         $payment_plan = $settings['payment_plan'];
 		//create a new plan and return the id
 // 		$payment_plan_amount = $this->plans['control_display_amount'][$settings['pa']];
-		if(isset($settings['saved_plan']) && empty($settings['saved_plan'])){
+		if($payment_plan == 'saved' && isset($settings['saved_plan']) && empty($settings['saved_plan'])){
 			$payment_plan_amount = $this->plans['control_display_amount'][$settings['saved_plan']];
-			echo "<h2>".$payment_plan_amount."</h2>";
 			$currency = $this->plans['control_display_currency'][$settings['saved_plan']];
 		}
         
@@ -457,6 +482,7 @@ class Flutterwave_Form_Widget extends Widget_Base
         $button_color = $settings['button_color'];
         $title_color = $settings['title_color'];
         $currency_picker_enabled = $settings['currency_picker_enabled'];
+		$plan_picker_enabled = $settings['plan_picker_enabled'];
         $this->add_render_attribute(
             'button_text',
             [
@@ -473,6 +499,28 @@ class Flutterwave_Form_Widget extends Widget_Base
         );
 		
 		$this->add_render_attribute(
+			'form_center',
+			[
+				'style' => '
+					color: black;
+					padding: 30px;
+					padding-left: auto;
+					padding-right: auto;
+					filter: drop-shadow(0px 1.44402px 10.8301px rgba(0, 0, 0, 0.1));
+					font-family: Inter;
+					position: relative;
+					justify-content: center;
+					width: 50%;
+					margin: 5px auto;
+					display: flex;
+					flex-direction:column;
+					font-weight: 300;
+					background-color: '. $settings['form_color'].'
+				'
+			]
+		);
+		
+		$this->add_render_attribute(
 			'input_field',
 			[
 				'style' => '
@@ -482,21 +530,23 @@ class Flutterwave_Form_Widget extends Widget_Base
 				'
 			]
         );
+		
         ?>
 <?php $current_user = wp_get_current_user(); ?>
 <div class="flutterwave-elementor-paynow-form-container">
-    <form id="flutterwave-elementor-form-form" method="POST" action="https://checkout.flutterwave.com/v3/hosted/pay">
+    <form id="flutterwave-elementor-form-form" method="POST" action="https://checkout.flutterwave.com/v3/hosted/pay"
+        <?php echo $this->get_render_attribute_string( 'form_center' ); ?>>
         <h3 style="text-align:center">
             <?php echo $form_title; ?>
         </h3>
         <input type="hidden" name="public_key" value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
         <input id="flw-elementor-cust-email" class="" name="customer[email]"
             value="<?php echo $current_user->user_email; ?>"
-            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> />
+            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> placeholder="Email" />
         <input id="flw-elementor-cust-name" name="customer[name]"
-            value="<?php echo $current_user->user_firstname. ' '.$current_user->user_lastname; ?>"
-            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> />
+            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> placeholder="Full Name" />
         <input type="hidden" name="tx_ref" value="<?php echo $tx_ref; ?>" />
+        <!-- 	currency and amount Options	 -->
         <?php if($currency_picker_enabled === 'yes'){ ?>
         <select name="currency" <?php echo $this->get_render_attribute_string( 'input_field' ); ?>>
             <?php foreach ($this->currencies_array as $key => $value) { ?>
@@ -504,18 +554,47 @@ class Flutterwave_Form_Widget extends Widget_Base
             <?php }?>
         </select>
         <input name="amount" value="<?php echo $amount; ?>"
-            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> />
+            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> placeholder="Amount" />
+        <?php }else{?>
+        <?php if($settings['payment_plan'] == 'saved' && !empty($settings['saved_plan']) && $plan_picker_enabled != 'yes'){ ?>
+        <input type="hidden" name="currency"
+            value="<?php echo $this->plans['control_display_currency'][$settings['saved_plan']]; ?>" />
+        <input type="hidden" name="amount"
+            value="<?php echo $this->plans['control_display_amount'][$settings['saved_plan']]; ?>" />
+        <input type="hidden" name="payment_plan" value="<?php echo $settings['saved_plan'];?>" />
+        <?php }elseif ($settings['payment_plan'] == 'saved' && !empty($settings['saved_plan']) || empty($settings['saved_plan'])  && $plan_picker_enabled == 'yes') {?>
+        <select id="flutterwave-payment-plan-elementor" name="payment_plan"
+            <?php echo $this->get_render_attribute_string( 'input_field' ); ?> placeholder="Select Plan">
+            <?php foreach ($this->plans['control_display'] as $key => $value) { ?>
+            <option value="<?php echo $key; ?>"><?php echo $value; ?></option>
+            <?php }?>
+        </select>
+
         <?php }else{?>
         <input type="hidden" name="currency" value="<?php echo $currency; ?>" />
         <input type="hidden" name="amount" value="<?php echo $amount; ?>" />
         <?php }?>
-        <input type="hidden" id="flw-elementor-redirecturl" name="redirect_url"
+        <?php }?>
+        <input type="hidden" id="flw-elementor-form-redirecturl" name="redirect_url"
             value="https://demoredirect.localhost.me/" />
         <button <?php echo $this->get_render_attribute_string( 'button_text' ); ?>>
             <?php echo $button_text; ?>
         </button>
     </form>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    jQuery(document).ready(function($) {
+        //check if the redirect input exists
+        if ($("#flw-elementor-form-redirecturl").length) {
+            $("#flw-elementor-form-redirecturl").attr(
+                "value",
+                f4b_data.apiUrl + "/flutterwave-for-business/v1/verifytransaction"
+            );
+        }
+    });
+});
+</script>
 <?php
     }
 
@@ -538,7 +617,7 @@ class Flutterwave_Form_Widget extends Widget_Base
 	display: flex;
 	flex-direction:column;
 	font-weight: 300;
-	background-color: #f2f2f2">
+	background-color: {{ settings.form_color }}">
             <h3 style="text-align:center">
                 {{{ settings.title_text }}}
             </h3>
@@ -565,15 +644,18 @@ class Flutterwave_Form_Widget extends Widget_Base
                     <input type="hidden" name="amount" {{{ view.getRenderAttributeString( 'input_field' ) }}}
                         value="{{{ settings.amount }}}" />
                     <# } #>
-                        <button id="f4b-elementor-paynow-button" style="font-size:{{{ settings.button_size }}};
+                        <# if ( settings.payment_plan==='saved' && settings.saved_plan){ #>
+                            <input type="hidden" name="payment_plan" value="{{{ settings.saved_plan }}}" />
+                            <# } #>
+                                <button id="f4b-elementor-paynow-button" style="font-size:{{{ settings.button_size }}};
                 line-height: 1.25;
                 padding: 1.1em 1.44em;
                 text-transform:uppercase;
                 border:none;
                 borderRadius:0.3em;">
-                            {{{ settings.button_text }}}
-                        </button>
-                        </form>
+                                    {{{ settings.button_text }}}
+                                </button>
+                                </form>
         </div>
         <?php
     }
@@ -595,6 +677,9 @@ class Flutterwave_Form_Widget extends Widget_Base
 
         if ( $response_code == 200 ) {
             $response_body = json_decode( wp_remote_retrieve_body( $response ), true );
+// 			echo "<pre>";
+// 			print_r($response_body['data']);
+// 			echo "</pre>";
             $result = $response_body['data'];
             foreach ( $result as $plan ) {
                 $plans[$plan['id']] = $plan['name'];

@@ -68,6 +68,15 @@ class Widgets {
         require_once 'widgets/flutterwave-form-widget.php';
 	}
 
+    public function flutterwave_add_elementor_category() {
+        \Elementor\Plugin::instance()->elements_manager->add_category(
+            'flutterwave-blocks',
+            [
+                'title' => esc_html__( 'Flutterwave Blocks', 'flutterwave-for-elementor' ),
+            ]
+        );
+    }
+
 	/**
 	 * Register Widgets
 	 *
@@ -94,6 +103,8 @@ class Widgets {
 	 * @access public
 	 */
 	public function __construct() {
+        // Register new Category for the plugin.
+        add_action( 'elementor/elements/categories_registered', [ $this, 'flutterwave_add_elementor_category' ] );
 		// Register the widgets.
 		add_action( 'elementor/widgets/widgets_registered', array( $this, 'register_widgets' ) );
 	}

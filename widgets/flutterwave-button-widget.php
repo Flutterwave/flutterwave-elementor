@@ -18,10 +18,25 @@ use Elementor\Widget_Base;
 if( !defined('ABSPATH') ) return exit;
 
 class Flutterwave_Button_Widget extends Widget_Base
-{       
+{     
+	    private $f4b_options;
+    	public $plans;
+    	public $currencies_array;
         public function __construct($data = array(), $args = null)
         {
             parent::__construct($data, $args);
+			$this->f4b_options = get_option( 'f4bflutterwave_options' );
+        	$this->plans = [];
+        	$this->get_plans();
+        	$this->currencies_array = [ 
+				'none' => "Select Currency", 
+				'NGN' => esc_html__('NGN','flutterwave-for-elementor'),
+				'GBP' => esc_html__('GBP','flutterwave-for-elementor'),
+				'KES' => esc_html__('KES','flutterwave-for-elementor'),
+				'XOR' => esc_html__('XOR','flutterwave-for-elementor'),
+				'ZMW' => esc_html__('ZMW','flutterwave-for-elementor'),
+				'GHS' => esc_html__('GHS','flutterwave-for-elementor'),
+			];
 
             // add_action('elementor/frontend/after_register_scripts', [$this, 'register_scripts']);
         }
@@ -48,7 +63,7 @@ class Flutterwave_Button_Widget extends Widget_Base
         public function get_script_depends() {
             //get the settings of flutterwave for Business Plugin
             $setting = get_option( 'f4bflutterwave_options', ['public_key' => 'FLWSECK_TEST-SANDBOXDEMOKEY-X', 'success_redirect_url' => '', 'failed_redirect_url' => ''] );
-            wp_enqueue_script( 'flutterwave-elementor-js', FLWELEMENTOR_PLUGIN_URL . 'assets/js/flutterwave-elementor.js' , ['jquery'], true );
+            wp_enqueue_script( 'flutterwave-elementor-js', ELEMENTOR_FLUTTERWAVE . 'assets/js/flutterwave-elementor.js' , ['jquery'], true );
             wp_localize_script( 'flutterwave-elementor-js', 'flutterwave_elementor_data', [
                 'apiUrl' => home_url( '/wp-json' ),
                 'public_key' => $setting['public_key'],
@@ -56,14 +71,16 @@ class Flutterwave_Button_Widget extends Widget_Base
                 'failed_redirect_url' => $setting['failed_redirect_url'],
             ]);
             return [ 'flutterwave-elementor-js' ];
+// 			return [];
         }
     
         public function get_style_depends() {
-            wp_enqueue_style( 'flutterwave-elementor-css', FLWELEMENTOR_PLUGIN_URL . 'assets/css/flutterwave-elementor.css', [], rand(), 'all' );
-            return [ 'flutterwave-elementor-css' ];
+//             wp_enqueue_style( 'flutterwave-elementor-css', ELEMENTOR_FLUTTERWAVE . 'assets/css/flutterwave-elementor.css', [], rand(), 'all' );
+//             return [ 'flutterwave-elementor-css' ];
+           return [];
         }
         
-        protected function _register_controls()
+        protected function register_controls()
         {
             $this->start_controls_section(
                 'content_section',
@@ -117,13 +134,7 @@ class Flutterwave_Button_Widget extends Widget_Base
                     'label' => esc_html__( 'Currency', 'flutterwave-for-elementor' ),
                     'type' => \Elementor\Controls_Manager::SELECT,
                     'default' => 'NGN',
-                    'options' => [
-                        'GHS'  => esc_html__( 'GHS', 'flutterwave-for-elementor' ),
-                        'KES' => esc_html__( 'KES', 'flutterwave-for-elementor' ),
-                        'USD' => esc_html__( 'USD', 'flutterwave-for-elementor' ),
-                        'NGN' => esc_html__( 'NGN', 'flutterwave-for-elementor' ),
-                        'NGN' => esc_html__( 'Default', 'flutterwave-for-elementor' ),
-                    ],
+                    'options' => $this->currencies_array,
                 ]
             );
 
@@ -142,31 +153,32 @@ class Flutterwave_Button_Widget extends Widget_Base
                     ],
                 ]
             );
+			
+			//One-off or Recurring
+        	$this->add_control(
+				'payment_frequency',
+            	[
+                	'label' => esc_html__( 'Payment Frequency', 'flutterwave-for-elementor' ),
+                	'type' => \Elementor\Controls_Manager::SELECT,
+                	'default' => 'one-off',
+                	'options' => [
+                    	'one-off'  => esc_html__( 'One-Off', 'flutterwave-for-elementor' ),
+                    	'recurring' => esc_html__( 'Recurring', 'flutterwave-for-elementor' ),
+                	],
+            	]
+			);
 
             $this->add_control(
                 'payment_plan',
                 [
                     'label' => esc_html__( 'Payment Plan', 'flutterwave-for-elementor' ),
                     'type' => \Elementor\Controls_Manager::SELECT,
-                    'default' => 'default',
-                    'options' => [
-                        'monthly'  => esc_html__( 'Monthly', 'flutterwave-for-elementor' ),
-                        'quarterly' => esc_html__( 'Quarterly', 'flutterwave-for-elementor' ),
-                        'yearly' => esc_html__( 'Yearly', 'flutterwave-for-elementor' ),
-                        'default' => esc_html__( 'None', 'flutterwave-for-elementor' ),
-                    ],
-                ]
-            );
-    
-            $this->add_control(
-                'payment_plan_amount',
-                [
-                    'label' => esc_html__( 'Payment Plan Amount', 'flutterwave-for-elementor' ),
-                    'type' => \Elementor\Controls_Manager::NUMBER,
-                    'min' => 5,
-                    'max' => 100000,
-                    'step' => 5,
-                    'default' => 0,
+                	'default' => array_keys($this->plans['control_display'])[0],//first plan id
+                	'options' => $this->plans['control_display'],
+					'condition' => [
+						'payment_frequency' => 'recurring'
+					]
+				
                 ]
             );
 
@@ -218,11 +230,10 @@ class Flutterwave_Button_Widget extends Widget_Base
 	    protected function render() {
             $settings = $this->get_settings_for_display();
             $amount = $settings['amount'];
-            $tx_ref = "WP_ELEMENTOR_" + uniqid() + "100";
+            $tx_ref = "WP_ELEMENTOR_" . uniqid() . "100";
             $currency = $settings['currency'];
             $payment_type = $settings['payment_type'];
             $payment_plan = $settings['payment_plan'];
-            $payment_plan_amount = $settings['payment_plan_amount'];
             $button_text = $settings['button_text'];
             $button_size = $settings['button_size'];
             $button_color = $settings['button_color'];
@@ -253,15 +264,38 @@ class Flutterwave_Button_Widget extends Widget_Base
         <input type="hidden" id="flw-elementor-cust-name" name="customer[name]"
             value="<?php echo $current_user->user_firstname. ' '.$current_user->user_lastname; ?>" />
         <input type="hidden" name="tx_ref" value="<?php echo $tx_ref; ?>" />
+        <?php if($settings['payment_frequency'] == 'recurring' && !empty($settings['payment_plan'])  ){ ?>
+        <input type="hidden" name="plan_name"
+            value="<?php echo $this->plans['control_display'][$settings['payment_plan']];?>" />
+        <input type="hidden" name="payment_plan" value="<?php echo $settings['payment_plan'];?>" />
+        <input type="hidden" name="amount"
+            value="<?php echo $this->plans['control_display_amount'][$settings['payment_plan']];?>" />
+        <input type="hidden" name="currency"
+            value="<?php echo $this->plans['control_display_currency'][$settings['payment_plan']];?>" />
+        <?php }else { ?>
         <input type="hidden" name="amount" value="<?php echo $amount; ?>" />
         <input type="hidden" name="currency" value="<?php echo $currency; ?>" />
-        <input type="hidden" id="flw-elementor-redirecturl" name="redirect_url"
+        <?php } ?>
+        <input type="hidden" id="flw-elementor-button-redirecturl" name="redirect_url"
             value="https://demoredirect.localhost.me/" />
         <button <?php echo $this->get_render_attribute_string( 'button_text' ); ?>>
             <?php echo $button_text; ?>
         </button>
     </form>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    jQuery(document).ready(function($) {
+        //check if the redirect input exists
+        if ($("#flw-elementor-button-redirecturl").length) {
+            $("#flw-elementor-button-redirecturl").attr(
+                "value",
+                f4b_data.apiUrl + "/flutterwave-for-business/v1/verifytransaction"
+            );
+        }
+    });
+});
+</script>
 <?php
         }
 	
@@ -275,4 +309,55 @@ class Flutterwave_Button_Widget extends Widget_Base
 </div>
 <?php
 		}
+	
+	    protected function get_plans():void
+    	{
+        $token = $this->f4b_options['secret_key'];
+        $flw_base_url = 
+        $response = wp_remote_get("https://api.flutterwave.com/v3/payment-plans", [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Authorization' => "Bearer " .$token
+            ]
+        ] );
+        $plans = [];
+        $plans_amount = [];
+        $plans_currency = [];
+        $response_code = wp_remote_retrieve_response_code( $response );
+
+        if ( $response_code == 200 ) {
+            $response_body = json_decode( wp_remote_retrieve_body( $response ), true );
+// 			echo "<pre>";
+// 			print_r($response_body['data']);
+// 			echo "</pre>";
+            $result = $response_body['data'];
+            foreach ( $result as $plan ) {
+                $plans[$plan['id']] = $plan['name'];
+                $plans_amount[$plan['id']] = $plan['amount'];
+                $plans_currency[$plan['id']] = $plan['currency'];
+            }
+            
+        }
+
+        $collection = [
+            'control_display' => $plans,
+            'control_display_amount' => $plans_amount,
+            'control_display_currency' => $plans_currency
+        ];
+
+        $nocollection = [
+            'control_display' => [
+                'none' => 'No Plans connected to you Flutterwave Account.'
+            ],
+            'control_display_amount' => [
+                'none' => 'No Plans connected to you Flutterwave Account.'
+            ],
+            'control_display_currency' => [
+                'none' => 'No Plans connected to you Flutterwave Account.'
+            ]
+        ];
+
+        $this->plans = $collection ?? $nocollection;
+        return;
+    	}
 }
