@@ -331,19 +331,20 @@ document.addEventListener("DOMContentLoaded", function() {
 // 			print_r($response_body['data']);
 // 			echo "</pre>";
             $result = $response_body['data'];
-            foreach ( $result as $plan ) {
-                $plans[$plan['id']] = $plan['name'];
-                $plans_amount[$plan['id']] = $plan['amount'];
-                $plans_currency[$plan['id']] = $plan['currency'];
-            }
+			if(isset($result) && $result){
+				foreach ( $result as $plan ) {
+                	$plans[$plan['id']] = $plan['name'];
+                	$plans_amount[$plan['id']] = $plan['amount'];
+                	$plans_currency[$plan['id']] = $plan['currency'];
+            	}
+				$collection = [
+            		'control_display' => $plans,
+            		'control_display_amount' => $plans_amount,
+            		'control_display_currency' => $plans_currency
+        		];
+			}
             
         }
-
-        $collection = [
-            'control_display' => $plans,
-            'control_display_amount' => $plans_amount,
-            'control_display_currency' => $plans_currency
-        ];
 
         $nocollection = [
             'control_display' => [

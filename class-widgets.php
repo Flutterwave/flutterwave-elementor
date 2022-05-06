@@ -106,7 +106,7 @@ class Widgets {
         // Register new Category for the plugin.
         add_action( 'elementor/elements/categories_registered', [ $this, 'flutterwave_add_elementor_category' ] );
 		// Register the widgets.
-		add_action( 'elementor/widgets/widgets_registered', array( $this, 'register_widgets' ) );
+		add_action( 'elementor/widgets/register', array( $this, 'register_widgets' ) );
 	}
 }
 

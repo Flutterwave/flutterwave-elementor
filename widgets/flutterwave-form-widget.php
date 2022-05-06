@@ -46,6 +46,7 @@ class Flutterwave_Form_Widget extends Widget_Base
 			"ZAR" => "ZAR",
 		];
 		wp_register_style( 'flw-elementor-form', plugins_url( '/assets/css/flutterwave-elementor.css', ELEMENTOR_FLUTTERWAVE ), array(), '1.0.0' );
+		wp_register_style( 'flw-elementor-js', plugins_url( '/assets/css/flutterwave-elementor.js', ELEMENTOR_FLUTTERWAVE ), ['jquery'], '1.0.0' );
     }
 
     public function get_name()
@@ -76,18 +77,22 @@ class Flutterwave_Form_Widget extends Widget_Base
 		return [ 'fintech', 'flutterwave', 'Payment', 'International', 'Funds', 'Subscriptions', 'Payout' ];
 	}
 
-//     public function get_script_depends() {
-//         //get the settings of flutterwave for Business Plugin
-//         $setting = get_option( 'f4bflutterwave_options', ['public_key' => 'FLWSECK_TEST-SANDBOXDEMOKEY-X', 'success_redirect_url' => '', 'failed_redirect_url' => ''] );
-//         wp_enqueue_script( 'flutterwave-elementor-js', FLWELEMENTOR_PLUGIN_URL . 'assets/js/flutterwave-elementor.js' , ['jquery'], true );
-//         wp_localize_script( 'flutterwave-elementor-js', 'flutterwave_elementor_data', [
-//             'apiUrl' => home_url( '/wp-json' ),
-//             'public_key' => $setting['public_key'],
-//             'success_redirect_url' => $setting['success_redirect_url'],
-//             'failed_redirect_url' => $setting['failed_redirect_url'],
-//         ]);
-//         return [ 'flutterwave-elementor-js' ];
-//     }
+    public function get_script_depends() {
+        //get the settings of flutterwave for Business Plugin
+        $setting = get_option( 'f4bflutterwave_options', ['public_key' => 'FLWSECK_TEST-SANDBOXDEMOKEY-X', 'success_redirect_url' => '', 'failed_redirect_url' => ''] );
+        wp_enqueue_script( 'flw-elementor-js');
+        wp_localize_script( 'flw-elementor-js', 'flutterwave_elementor_data', [
+            'apiUrl' => home_url( '/wp-json' ),
+            'public_key' => $setting['public_key'],
+            'success_redirect_url' => $setting['success_redirect_url'],
+            'failed_redirect_url' => $setting['failed_redirect_url'],
+        ]);
+        return [ 'flw-elementor-js' ];
+    }
+	
+	public function get_style_depends() {
+		return [ 'flw-elementor-form' ];
+	}
     
     protected function register_controls()
     {
@@ -678,23 +683,23 @@ document.addEventListener("DOMContentLoaded", function() {
         if ( $response_code == 200 ) {
             $response_body = json_decode( wp_remote_retrieve_body( $response ), true );
 // 			echo "<pre>";
-// 			print_r($response_body['data']);
+// 			print_r(json_encode($response_body['data']));
 // 			echo "</pre>";
-            $result = $response_body['data'];
-            foreach ( $result as $plan ) {
-                $plans[$plan['id']] = $plan['name'];
-                $plans_amount[$plan['id']] = $plan['amount'];
-                $plans_currency[$plan['id']] = $plan['currency'];
-            }
-            
+            $result = isset($response_body['data'])? $response_body['data'] : null;
+			if(isset($result) && $result){
+				foreach ( $result as $plan ) {
+                	$plans[$plan['id']] = $plan['name'];
+                	$plans_amount[$plan['id']] = $plan['amount'];
+                	$plans_currency[$plan['id']] = $plan['currency'];
+            	}
+				$collection = [
+            		'control_display' => $plans,
+            		'control_display_amount' => $plans_amount,
+            		'control_display_currency' => $plans_currency
+        		];
+			}
         }
-
-        $collection = [
-            'control_display' => $plans,
-            'control_display_amount' => $plans_amount,
-            'control_display_currency' => $plans_currency
-        ];
-
+		
         $nocollection = [
             'control_display' => [
                 'none' => 'No Plans connected to you Flutterwave Account.'
