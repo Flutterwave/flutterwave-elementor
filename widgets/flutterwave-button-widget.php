@@ -298,7 +298,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if ($("#flutterwave-public-key-elementor-button").length) {
             $("#flutterwave-public-key-elementor-button").attr(
                 "value",
-                f4b_data.public_key
+                f4b_data.public_key.trim()
             );
         }
     });
