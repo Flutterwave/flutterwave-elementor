@@ -258,7 +258,8 @@ class Flutterwave_Button_Widget extends Widget_Base
 <?php $current_user = wp_get_current_user(); ?>
 <div class="flutterwave-elementor-paynow-button-container">
     <form id="flutterwave-elementor-button-form" method="POST" action="https://checkout.flutterwave.com/v3/hosted/pay">
-        <input type="hidden" name="public_key" value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
+        <input id="flutterwave-public-key-elementor-button" type="hidden" name="public_key"
+            value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
         <input type="hidden" id="flw-elementor-cust-email" name="customer[email]"
             value="<?php echo $current_user->user_email; ?>" />
         <input type="hidden" id="flw-elementor-cust-name" name="customer[name]"
@@ -291,6 +292,13 @@ document.addEventListener("DOMContentLoaded", function() {
             $("#flw-elementor-button-redirecturl").attr(
                 "value",
                 f4b_data.apiUrl + "/flutterwave-for-business/v1/verifytransaction"
+            );
+        }
+
+        if ($("#flutterwave-public-key-elementor-button").length) {
+            $("#flutterwave-public-key-elementor-button").attr(
+                "value",
+                f4b_data.public_key
             );
         }
     });

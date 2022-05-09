@@ -544,7 +544,8 @@ class Flutterwave_Form_Widget extends Widget_Base
         <h3 style="text-align:center">
             <?php echo $form_title; ?>
         </h3>
-        <input type="hidden" name="public_key" value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
+        <input id="dlutterwave-public-key-elementor" type="hidden" name="public_key"
+            value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
         <input id="flw-elementor-cust-email" class="" name="customer[email]"
             value="<?php echo $current_user->user_email; ?>"
             <?php echo $this->get_render_attribute_string( 'input_field' ); ?> placeholder="Email" />
@@ -595,6 +596,13 @@ document.addEventListener("DOMContentLoaded", function() {
             $("#flw-elementor-form-redirecturl").attr(
                 "value",
                 f4b_data.apiUrl + "/flutterwave-for-business/v1/verifytransaction"
+            );
+        }
+
+        if ($("#flutterwave-public-key-elementor").length) {
+            $("#flutterwave-public-key-elementor").attr(
+                "value",
+                f4b_data.public_key
             );
         }
     });
