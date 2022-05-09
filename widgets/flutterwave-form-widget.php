@@ -544,7 +544,7 @@ class Flutterwave_Form_Widget extends Widget_Base
         <h3 style="text-align:center">
             <?php echo $form_title; ?>
         </h3>
-        <input id="dlutterwave-public-key-elementor" type="hidden" name="public_key"
+        <input id="flutterwave-public-key-elementor" type="hidden" name="public_key"
             value="FLWPUBK_TEST-SANDBOXDEMOKEY-X" />
         <input id="flw-elementor-cust-email" class="" name="customer[email]"
             value="<?php echo $current_user->user_email; ?>"
