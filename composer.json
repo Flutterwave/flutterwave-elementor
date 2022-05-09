@@ -1,0 +1,16 @@
+{
+    "name": "flutterwave/flutterwave-elementor",
+    "description": "The Official Flutterwave plugin for integration with Elementor",
+    "type": "project",
+    "require": {
+        "abrahamolaoboju/flutterwave-php": "^0.1.0"
+    },
+    "license": "GPL-3+",
+    "authors": [
+        {
+            "name": "Flutterwave Developers",
+            "email": "developers@flutterwavego.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
