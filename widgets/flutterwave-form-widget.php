@@ -602,7 +602,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if ($("#flutterwave-public-key-elementor").length) {
             $("#flutterwave-public-key-elementor").attr(
                 "value",
-                f4b_data.public_key
+                f4b_data.public_key.trim()
             );
         }
     });
