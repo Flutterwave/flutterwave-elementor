@@ -1,7 +1,7 @@
 <?php
 /**
 * Plugin Name: Flutterwave for Elementor
-* Description: The Official FLutterwave Payment Gateway for Elementor
+* Description: The Official Flutterwave Payment Gateway for Elementor
 * Plugin URI: https://flutterwave.com/ng
 * Version: 1.1.0
 * Author: Flutterwave Developers
