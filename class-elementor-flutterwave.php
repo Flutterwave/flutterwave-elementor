@@ -93,8 +93,8 @@ final class Elementor_Flutterwave {
 	 * @access public
 	 */
 	public function init() {
-
-        if (! in_array( 'flutterwave-for-business/flutterwave-for-business.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+		
+        if (! did_action( 'flutterwave-for-business/loaded' ) ) {
             add_action( 'admin_notices', array( $this, 'flutterwave_for_business_notice' ) );
         }
 
